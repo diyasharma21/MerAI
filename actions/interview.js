@@ -5,7 +5,9 @@ import { auth } from "@clerk/nextjs/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const model = genAI.getGenerativeModel({
+  model: "models/gemini-2.5-flash"
+});
 
 export async function generateQuiz() {
   const { userId } = await auth();
@@ -47,15 +49,15 @@ export async function generateQuiz() {
   try {
     const result = await model.generateContent(prompt);
     const response = result.response;
-    const text = response.text();
+    const text = result.response.text();
     const cleanedText = text.replace(/```(?:json)?\n?/g, "").trim();
     const quiz = JSON.parse(cleanedText);
 
     return quiz.questions;
   } catch (error) {
-    console.error("Error generating quiz:", error);
-    throw new Error("Failed to Generate Questions");
-  }
+  console.error("REAL GEMINI ERROR:", error);
+  throw error;
+}
 }
 
 export async function saveQuizResult(questions, answers, score) {
